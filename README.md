@@ -19,18 +19,19 @@ Requires several modules:
 ## Usage
 <pre>
    user=> (require 'cljotdr.parse)
+   nil
    user=> (require 'cljotdr.dump)
    nil
    user=> (def file-name "mydata.sor")
-   ; 'user/file-name   (<i>your SOR file</i>)
+   #'user/file-name   (<i>your SOR file</i>)
    user=> (def trace-file "otdr-trace.dat")
-   ; 'user/trace-file  (<i>where the OTDR trace should be written to; use nil to avoid writing to file</i>)
+   #'user/trace-file  (<i>where the OTDR trace should be written to; use nil to avoid writing to file</i>)
    user=> (def debug? false)
-   ; 'user/debug?      (<i>whether to show debugging information on screen</i>)
+   #'user/debug?      (<i>whether to show debugging information on screen</i>)
    user=> (def results (cljotdr.parse/sorparse file-name trace-file debug?))
-   ; 'user/results     (<i>hash-map of parsing results</i>)
+   #'user/results     (<i>hash-map of parsing results</i>)
    user=> (def output-type 1)
-   ; 'user/output-type (<i>1 for JSON, 2 for SMILE</i>)
+   #'user/output-type (<i>1 for JSON, 2 for SMILE</i>)
    user=> (cljotdr.dump/save-file results "output.json" output-type) 
 </pre>
 
