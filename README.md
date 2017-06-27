@@ -1,6 +1,6 @@
 # cljotdr
 
-'cljotdr' - parser for SOR ("Standard OTDR Record") data files, used to store
+<code>cljotdr</code> - parser for SOR ("Standard OTDR Record") data files, used to store
 OTDR (optical time-domain reflectometer) data.
 
 ## Installation
@@ -17,7 +17,7 @@ Requires several modules:
 * [digest "1.4.5"] (various digests; only for testing)
 
 ## Usage
-
+<pre>
    user=> (require 'cljotdr.parse)
    user=> (require 'cljotdr.dump)
    nil
@@ -32,6 +32,7 @@ Requires several modules:
    user=> (def output-type 1)
    ; 'user/output-type (<i>1 for JSON, 2 for SMILE</i>)
    user=> (cljotdr.dump/save-file results "output.json" output-type) 
+</pre>
 
 ### Bugs
     
