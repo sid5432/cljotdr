@@ -1,6 +1,4 @@
-# cljotdr
-
-<code>cljotdr</code> Simple OTDR SOR file parse written in Clojure
+# cljotdr: a simple OTDR SOR file parse written in Clojure
 
 The SOR ("Standard OTDR Record") data format is used to store OTDR
 ([optical time-domain
