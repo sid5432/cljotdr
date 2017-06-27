@@ -1,4 +1,7 @@
+
 # cljotdr: a simple OTDR SOR file parse written in Clojure
+
+[![Clojars Project](https://img.shields.io/clojars/v/optical.fiber/cljotdr.svg)](https://clojars.org/optical.fiber/cljotdr)
 
 The SOR ("Standard OTDR Record") data format is used to store OTDR
 ([optical time-domain
