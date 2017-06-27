@@ -12,7 +12,10 @@
             [cljotdr.datapts]
             [cljotdr.cksum]
             )
-  (:gen-class))
+  (:gen-class
+   :name cljotdr.parse
+   :methods [^:static [sorparse [String String Boolean] clojure.lang.PersistentHashMap] ]
+   ))
 
 (use '[clojure.pprint :only (pp pprint)])
 
@@ -92,4 +95,10 @@
       (real-sor-parse fname raf tracefile debug?)
       ) ; end if
     ) ; end let
+  )
+
+(defn -sorparse
+  "A Java-callable wrapper around the 'sorparse' function"
+  [fname tracefile debug?]
+  (sorparse fname tracefile debug?)
   )

@@ -1,4 +1,4 @@
-(defproject optical.fiber/cljotdr "0.1.0"
+(defproject optical.fiber/cljotdr "0.1.1"
   :description "OTDR SOR file parse"
   :url "https://github.com/sid5432/cljotdr"
   :license {:name "Eclipse Public License"

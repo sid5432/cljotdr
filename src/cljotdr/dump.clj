@@ -3,7 +3,10 @@
             [me.raynes.fs]
             [cheshire.core :as json]
             )
-  (:gen-class))
+  (:gen-class
+   :name cljotdr.dump
+   :methods [#^{:static true} [save_file [clojure.lang.PersistentHashMap String Integer] void]]
+   ))
 
 (defn get-opname
   "generate an outputname"
@@ -45,4 +48,10 @@
       (save-to-sml results opname)
       )
     )
+  )
+
+(defn -save_file
+  "A Java-callable wrapper around the 'save-file' function"
+  [results opname optype]
+  (save-file results opname optype)
   )

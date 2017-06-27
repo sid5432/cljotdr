@@ -87,6 +87,33 @@ Uses several other modules:
    user=> (cljotdr.dump/save-file results "output.json" output-type) 
 </pre>
 
+## Using in Java
+
+Here is a sample Java program to call the two main functions, <code>sorparse</code> and
+<code>save_file</code>:
+
+<pre>
+import cljotdr.parse;
+import cljotdr.dump;
+import clojure.lang.PersistentHashMap;
+
+public class testOTDR {
+	public static void main(String[] args) {
+		clojure.lang.PersistentHashMap results;
+		
+		results = cljotdr.parse.sorparse("demo_ab.sor","trace.dat",true);
+		// save result in JSON format
+		cljotdr.dump.save_file(results,"testout.json",1);
+		// save result in SMILE format
+		cljotdr.dump.save_file(results,"testout.sml",2);
+				       
+		System.out.println("Bye!");
+	}
+}
+</pre>
+
+To generating the class file, you will need to set the classpath to include the necessary jar files.
+
 ### Bugs
     
 The parsing is incomplete; please see <A HREF="https://morethanfootnotes.blogspot.com/2015/07/the-otdr-optical-time-domain.html">my blog post</A> for details.
@@ -97,3 +124,5 @@ Copyright © 2017 Sidney Li <sidney.hy.li@gmail.com>
 
 Distributed under the Eclipse Public License either version 1.0 or (at
 your option) any later version.
+
+<i>(Last Revised 2017-06-27)</i>
