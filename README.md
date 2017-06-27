@@ -5,7 +5,9 @@ OTDR (optical time-domain reflectometer) data.
 
 ## Installation
 
-Requires several modules:
+Add <code>[optical.fiber/cljotdr "0.1.0"]</code> to your <code>project.clj</code> file.
+
+Uses several other modules:
 
 * [org.clojure/tools.cli "0.3.5"]
 * [biscuit "1.0.0"] (for CRC-16)
@@ -18,9 +20,7 @@ Requires several modules:
 
 ## Usage
 <pre>
-   user=> (require 'cljotdr.parse)
-   nil
-   user=> (require 'cljotdr.dump)
+   user=> (use '[cljotdr.core])
    nil
    user=> (def file-name "mydata.sor")
    #'user/file-name   (<i>your SOR file</i>)
