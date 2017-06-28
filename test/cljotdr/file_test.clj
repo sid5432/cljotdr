@@ -12,8 +12,8 @@
     (let [
           tracefile (java.io.File/createTempFile "file1" ".dat")
           debug?    false ; quiet
-          fname     "resources/samples/demo_ab.sor"
-          expected  "resources/samples/demo_ab-expected.json"
+          fname     "test/data/demo_ab.sor"
+          expected  "test/data/demo_ab-expected.json"
           opfile    "/tmp/demo_ab.json"
           results-map  (cljotdr.parse/sorparse fname tracefile debug?)
           ]
@@ -65,8 +65,8 @@
     (let [
           tracefile (java.io.File/createTempFile "file2" ".dat")
           debug?    false ; quiet
-          fname     "resources/samples/sample1310_lowDR.sor"
-          expected  "resources/samples/sample1310_lowDR-expected.json"
+          fname     "test/data/sample1310_lowDR.sor"
+          expected  "test/data/sample1310_lowDR-expected.json"
           opfile    "/tmp/sample1310_lowDR.json"
           results-map  (cljotdr.parse/sorparse fname tracefile debug?)
           ]

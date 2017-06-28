@@ -52,7 +52,7 @@
     (let [ [fname optype dump?] (apply filename_etc
                                  (list "--test" "1" "-j" "1"))
           ]
-      (is (= fname "resources/samples/demo_ab.sor"))
+      (is (= fname "test/data/demo_ab.sor"))
       (is (= optype 1))
       )
     )
@@ -63,7 +63,7 @@
     (let [ [fname optype dump?] (apply filename_etc
                                  (list "--test" "2" "-j" "2"))
           ]
-      (is (= fname "resources/samples/sample1310_lowDR.sor"))
+      (is (= fname "test/data/sample1310_lowDR.sor"))
       (is (= optype 2))
       )
     )

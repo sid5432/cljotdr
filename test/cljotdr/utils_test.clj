@@ -6,7 +6,7 @@
 
 (deftest test-uint
   (testing "test reading uint"
-    (let [ fname "resources/samples/demo_ab.sor"
+    (let [ fname "test/data/demo_ab.sor"
           raf (openfile fname)
           ]
       ;; test default
@@ -26,7 +26,7 @@
 
 (deftest test-get-string
   (testing "test reading string"
-    (let [ fname "resources/samples/sample1310_lowDR.sor"
+    (let [ fname "test/data/sample1310_lowDR.sor"
           raf (openfile fname)
           mstr (get-string raf)
           ]
@@ -37,7 +37,7 @@
 
 (deftest test-get-hexstring
   (testing "test reading hexidecimal"
-    (let [ fname "resources/samples/demo_ab.sor"
+    (let [ fname "test/data/demo_ab.sor"
           raf (openfile fname)
           mstr (get-hexstring raf 4)
           ]
@@ -48,7 +48,7 @@
 
 (deftest test-signed
   (testing "test reading signed"
-    (let [ fname "resources/samples/demo_ab.sor"
+    (let [ fname "test/data/demo_ab.sor"
           raf (openfile fname)
           ]
 
@@ -65,7 +65,7 @@
 
 (deftest test-file1
   (testing "test reading whole file"
-    (let [ fname "resources/samples/demo_ab.sor"
+    (let [ fname "test/data/demo_ab.sor"
           raf (openfile fname)
           flength (- (.length (raf :fh)) 2)
           ]
@@ -88,7 +88,7 @@
 
 (deftest test-file2
   (testing "test reading whole "
-    (let [ fname "resources/samples/sample1310_lowDR.sor"
+    (let [ fname "test/data/sample1310_lowDR.sor"
           raf (openfile fname)
           flength (- (.length (raf :fh)) 2)
           ]

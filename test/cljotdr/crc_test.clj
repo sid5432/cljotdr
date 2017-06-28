@@ -34,7 +34,7 @@
 
 (deftest test-file1
   (testing "checksum on file 1"
-    (let [ fname "resources/samples/demo_ab.sor"
+    (let [ fname "test/data/demo_ab.sor"
           raf (openfile fname)
           flength (- (.length (raf :fh)) 2)
           ]
@@ -52,7 +52,7 @@
 
 (deftest test-file2
   (testing "checksum on file 2"
-    (let [ fname "resources/samples/sample1310_lowDR.sor"
+    (let [ fname "test/data/sample1310_lowDR.sor"
           raf (openfile fname)
           flength (- (.length (raf :fh)) 2)
           ]
