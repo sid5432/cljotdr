@@ -104,22 +104,49 @@ public class testOTDR {
 	public static void main(String[] args) {
 		clojure.lang.PersistentHashMap results;
 		
-		results = cljotdr.parse.sorparse("demo_ab.sor","trace.dat",true);
+		Boolean verbose = true; // display results on screen
+		results = cljotdr.parse.sorparse("demo_ab.sor", "trace.dat", verbose);
 		// save result in JSON format
-		cljotdr.dump.save_file(results,"testout.json",1);
+		cljotdr.dump.save_file(results,"testout.json", 1);
 		// save result in SMILE format
-		cljotdr.dump.save_file(results,"testout.sml",2);
-				       
+		cljotdr.dump.save_file(results,"testout.sml", 2);
+		
+		double version = (double) results.valAt("version");
+                System.out.format("\n* Version = %.1f\n", version);
+		
+		clojure.lang.PersistentHashMap GenParams = (clojure.lang.PersistentHashMap) results.valAt("GenParams");
+
+                System.out.format("\n* GenParams listing : %s\n", GenParams);
+                System.out.format("\n* wavelength = %s\n", GenParams.valAt("wavelength"));
+
 		System.out.println("Bye!");
 	}
 }
 </pre>
 
-To generating the class file, you will need to set the classpath to include the necessary jar files.
+You will need to have (generate) the jar file from the <code>cljotdr</code> source code first (note that the jar file from clojars does not include the class files).  Grab the source code for <code>cljotdr</code>, and run [Leiningen](https://leiningen.org) in the top level folder:
+
+<pre>
+% lein uberjar
+</pre>
+
+This should generate two jar files in the folder <code>target/uberjar/</code>: <code>uberjar/cljotdr-0.1.1.jar</code> and 
+<code>cljotdr-0.1.1-standalone.jar</code>.  To generating the class file, you will need to set the classpath to include the necessary jar files.  If you are using <code>javac</code> compile the class file as follows (adjust the path to the jar file according to where you place it in your file system):
+
+<pre>
+% javac -cp cljotdr-0.1.1-standalone.jar:. testOTDR.java
+</pre>
+
+(where <code>testOTDR.java</code> contains the Java code listed above).  This will generate the file <code>testOTDR.class</code>.  Now you can run the code:
+
+<pre>
+% java -cp cljotdr-0.1.1-standalone.jar:. testOTDR
+</pre>
+
 
 ### Bugs
     
-The parsing is incomplete; please see <A HREF="https://morethanfootnotes.blogspot.com/2015/07/the-otdr-optical-time-domain.html">my blog post</A> for details.
+The parsing is incomplete, and might even be wrong! Please read the introduction above.
 
 ## License
 
@@ -128,4 +155,4 @@ Copyright © 2017 Sidney Li <sidney.hy.li@gmail.com>
 Distributed under the Eclipse Public License either version 1.0 or (at
 your option) any later version.
 
-<i>(Last Revised 2017-06-27)</i>
+<i>(Last Revised 2017-06-28)</i>
