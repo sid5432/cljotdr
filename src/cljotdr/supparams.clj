@@ -82,3 +82,53 @@
       ) ; if
     ) ; loop
   )
+
+;; ========================================================
+
+(defn- real-alter-block
+  [bname fmtno old-map new-map input output]
+
+  (println "* Proceesing/altering " bname)
+  (let [startpos (.getFilePointer (output :fh))]
+    (if (= fmtno 2) ; write header
+      (write-string output bname)
+      )
+    
+    (loop [
+           flist (fields fmtno)
+           ]
+      (if (empty? flist) nil
+          (let [field (first flist)
+                oldval (get-in old-map [bname field])
+                tmpval (get-in new-map [bname field])
+                newval (if (nil? tmpval) oldval tmpval)
+                ]
+            (write-string output newval)
+            (recur (rest flist))
+            ); let
+          ); if
+      ) ;loop
+    
+    ;; (println "\tDEBUG: " bname " block: loop finished")
+    (let [
+          currpos  (.getFilePointer (output :fh))
+          newbsize (- currpos startpos)
+          mbsize   (get-in old-map ["mapblock" "nbytes"])
+          ]
+      ;; (println "Old block size " (get-in old-map ["blocks" bname "size"]))
+      ;; (println "New block size " newbsize)
+      
+      (cljotdr.mapblock/adjust-block-size bname newbsize mbsize output)
+      
+      (.seek (output :fh) currpos) ;; restore file position for next round
+      ); let (adjust-block-size)
+    
+    ); let (startpos)
+  )
+
+(defn alter-block
+  [bname fmtno old-map new-map input output]
+  (if (not= bname "SupParams") (println "! wrong block " bname)
+      (real-alter-block bname fmtno old-map new-map input output)
+      )
+  )

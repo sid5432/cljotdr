@@ -47,8 +47,8 @@
 
 (defn validate-args [args]
   (let [{:keys [options arguments errors summary]} (parse-opts args cli-options)
-        testfile1 "resources/samples/demo_ab.sor"
-        testfile2 "resources/samples/sample1310_lowDR.sor"
+        testfile1 "test/data/demo_ab.sor"
+        testfile2 "test/data/sample1310_lowDR.sor"
         returnval  {:sorfile (options :file)
                     :json (options :json)
                     :dump (options :dump)

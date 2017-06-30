@@ -1,5 +1,8 @@
 (ns cljotdr.genparams
-  (:require [cljotdr.utils :refer :all])
+  (:require
+   [cljotdr.utils :refer :all]
+   [cljotdr.mapblock :refer [adjust-block-size]]
+   )
   (:gen-class))
 
 (defn- fields
@@ -149,4 +152,76 @@
         ) ; let
       ) ; if
     ) ; loop
+  )
+
+;; ===========================================================
+(defn- map-fiber-type
+  [val]
+  (if
+      (= "G." (.substring val 0 2)) (read-string (.substring val 2 5))
+      (read-string (.substring val))
+      )
+  )
+
+(defn- real-alter-block
+  [bname fmtno old-map new-map input output]
+
+  (println "* Proceesing/altering " bname)
+  (let [startpos (.getFilePointer (output :fh))]
+    (if (= fmtno 2) ; write header
+      (write-string output bname)
+      )
+    
+    (write-fixed-string output (get-in new-map [bname "language"])) ; write language
+    
+    (loop [
+           flist (fields fmtno)
+           ]
+      (if (empty? flist) nil
+          (let [field (first flist)
+                oldval (get-in old-map [bname field])
+                tmpval (get-in new-map [bname field])
+                newval (if (nil? tmpval) oldval tmpval)
+                ]
+            (cond
+              (= "wavelength" field) (write-uint output
+                                                 (read-string newval)   2)
+              (= "build condition" field) (write-fixed-string output
+                                                              (.substring newval 0 2) )
+              (= "(unknown 1)" field) (write-uint output
+                                                  (read-string (.substring newval 5)) 4)
+              (= "(unknown 2)" field) (write-uint output
+                                                  (read-string (.substring newval 5)) 8)
+              ;; version 2 fields
+              (= "fiber type" field) (write-uint output
+                                                 (map-fiber-type newval)   2)
+              :else (write-string output newval)
+              )
+            (recur (rest flist))
+            ); let
+          ); if
+      ) ;loop
+    
+    ;; (println "\tDEBUG: " bname " block: loop finished")
+    (let [
+          currpos  (.getFilePointer (output :fh))
+          newbsize (- currpos startpos)
+          mbsize   (get-in old-map ["mapblock" "nbytes"])
+          ]
+      ;; (println "Old block size " (get-in old-map ["blocks" bname "size"]))
+      ;; (println "New block size " newbsize)
+      
+      (cljotdr.mapblock/adjust-block-size bname newbsize mbsize output)
+      
+      (.seek (output :fh) currpos) ;; restore file position for next round
+      ); let (adjust-block-size)
+    
+    ); let (startpos)
+  )
+
+(defn alter-block
+  [bname fmtno old-map new-map input output]
+  (if (not= bname "GenParams") (println "! wrong block " bname)
+      (real-alter-block bname fmtno old-map new-map input output)
+      )
   )

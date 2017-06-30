@@ -1,5 +1,7 @@
 (ns cljotdr.cksum
-  (:require [cljotdr.utils :refer :all])
+  (:require [cljotdr.utils :refer :all]
+            [cljotdr.crc :refer [mycrc16]]
+            )
   (:gen-class))
 
 (defn process
@@ -40,4 +42,43 @@
         (assoc-in ["Cksum" "match"] match)
         )
     ); end let
+  )
+
+;; ========================================================================
+(defn- real-alter-block
+  [bname fmtno old-map new-map input output]
+  
+  (if (= fmtno 2) ; write header
+    (write-string output bname)
+    )
+  
+  (let [
+        currpos (.getFilePointer (output :fh)) ; save current position
+        ]
+    ;; NOTE: if output file already exists, the (.length (output :fh)) value
+    ;; will be incorrect!
+    ;; (println "DEBUG: curr pos " currpos)
+    (println "* Recalculating checksum")
+    (.seek (output :fh) 0) ;; rewind and calculate new checksum
+    (reset-cksum output)
+    
+    ;; re-read the whole file (up to the checksum header) to calculate
+    ;; the checksum
+    (doall
+     (map (fn [_] (myread output))
+          (range currpos))
+     )
+    
+    ;; restore position
+    (.seek (output :fh) currpos)
+    ;; dummy write
+    (write-uint output (get-curr-cksum output) 2)
+    ); let
+  )
+
+(defn alter-block
+  [bname fmtno old-map new-map input output]
+  (if (not= bname "Cksum") (println "! wrong block " bname)
+      (real-alter-block bname fmtno old-map new-map input output)
+      )
   )

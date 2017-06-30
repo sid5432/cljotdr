@@ -96,3 +96,89 @@
     )
   )
 
+;;; ========================================================================================
+(defn copy-map-block
+  [results-map input output]
+
+  (.seek (input :fh) 0)
+  (.seek (output :fh) 0)
+  
+  (let [
+        bsize (get-in results-map ["mapblock" "nbytes"])
+        ]
+    (doall
+     (map (fn [x] (.write (output :fh) (.read (input :fh))))
+          (range bsize))
+     );do all
+    ); let
+  )
+
+(defn- initial-search
+  [bname mbsize output]
+  (.seek (output :fh) 0) ;; start from beginning of mapblock
+  (let [
+        slength  (inc (.length bname))
+        search-n (- mbsize slength)
+        fchar    (.substring bname 0 1)
+        ]
+        ; find first occurance of first character of bname string
+    (reduce (fn [x y]
+              (let [c (.read (output :fh))]
+                (if (= (str (char c)) fchar)
+                  (
+                   reduced (.getFilePointer (output :fh))
+                                        ; (println y c (char c))
+                   ))))
+            (range search-n))
+    )
+  )
+
+(defn- final-and-set
+  [bname newbsize output start search-n slength]
+  (loop [
+         spos start
+         ]
+    (if (>= spos search-n)
+      (do
+        (println "ERROR: did not find " bname "block!")
+        )
+      (let [ 
+            _ (.seek (output :fh) (dec spos)) ;; one step back in file position!
+            candidate (get-fixed-string output (dec slength))
+            ]
+        ;; (println "\tDEBUG: candidate " candidate bname " now at " spos)
+        (if (= bname candidate)
+          (do ; match
+            ;; (println "\tconfirmed " bname " at pos " (format "0x%X" spos) " now at " (format "0x%X" (.getFilePointer (output :fh)))  )
+            (.seek (output :fh) (+ spos slength 1)) ;; skip 2 bytes (version num) to block size location
+            ;; (println "\tadvance pos to " (format "0x%X" (.getFilePointer (output :fh))) )
+            ;; (println "\tnewblock size " newbsize)
+            (write-uint output newbsize 4) ; write new block size
+            ;; (println "\tpos now at " (format "0x%X" (.getFilePointer (output :fh))) )
+            ) ; do
+          
+          (recur (inc spos))
+          );if
+        ); let
+      ); if
+    ); loop
+  )
+
+(defn adjust-block-size
+  [bname newbsize mbsize output]
+  
+  (.seek (output :fh) 0) ;; start from beginning of mapblock
+  (let [
+        slength  (inc (.length bname))
+        search-n (- mbsize slength)
+        fchar    (.substring bname 0 1)
+        ; find first occurance of first character of bname string
+        start    (initial-search bname mbsize output)
+        ]
+    ; (println "found at post " start)
+    ; (println "search to " search-n)
+    ;; continue search to confirm
+    (final-and-set bname newbsize output start search-n slength)
+    )
+  )
+

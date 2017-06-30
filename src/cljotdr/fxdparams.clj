@@ -13,7 +13,7 @@
     (list ; name, start-pos, length (bytes), type, multiplier, precision, units
      ; type: display type: 'v' (value) or 'h' (hexidecimal) or 's' (string)
      ["date/time",0,4,"v","","",""], ; ............... 0-3 seconds in Unix time
-     ["unit",4,2,"s","","",""], ; .................... 4-5 distance units, 2 char (km,mt,$
+     ["unit",4,2,"s","","",""], ; .................... 4-5 distance units, 2 char (km,mt,..)
      ["wavelength",6,2,"v",0.1,1,"nm"], ; ............ 6-7 wavelength (nm)
      ["unknown 1",8,6,"h","","",""], ; ............... 8-13 ???
      ["pulse width",14,2,"v","",0,"ns"],  ; .......... 14-15 pulse width (ns)
@@ -26,13 +26,13 @@
      ["unknown 2",38,10,"h","","",""], ; ............. 38-47 ???
      ["loss thr", 48,2,"v",0.001,3,"dB"], ; .......... 48-49 loss threshold
      ["refl thr", 50,2,"v",-0.001,3,"dB"], ; ......... 50-51 reflection threshold
-     ["EOT thr",52,2,"v",0.001,3,"dB"], ; ............ 52-53 end-of-transmission threshol$
+     ["EOT thr",52,2,"v",0.001,3,"dB"], ; ............ 52-53 end-of-transmission threshold
      )
     (= 2 fmtno)
     (list ; name, start-pos, length (bytes), type, multiplier, precision, units
      ; type: display type: "v" (value) or "h" (hexidecimal) or "s" (string)
      ["date/time",0,4,"v","","",""], ; ............... 0-3 seconds in Unix time
-     ["unit",4,2,"s","","",""], ; .................... 4-5 distance units, 2 char (km,mt,$
+     ["unit",4,2,"s","","",""], ; .................... 4-5 distance units, 2 char (km,mt,...)
      ["wavelength",6,2,"v",0.1,1,"nm"], ; ............ 6-7 wavelength (nm)
      ["unknown 1",8,10,"h","","",""], ; .............. 8-17 ???
      ["pulse width",18,2,"v","",0,"ns"],  ; .......... 18-19 pulse width (ns)
@@ -51,7 +51,7 @@
      
      ["loss thr", 58,2,"v",0.001,3,"dB"], ; .......... 58-59 loss threshold
      ["refl thr", 60,2,"v",-0.001,3,"dB"], ; ......... 60-61 reflection threshold
-     ["EOT thr",62,2,"v",0.001,3,"dB"], ; ............ 62-63 end-of-transmission threshol$
+     ["EOT thr",62,2,"v",0.001,3,"dB"], ; ............ 62-63 end-of-transmission threshold
      ["trace type",64,2,"s","","",""], ; ............. 64-65 trace type (ST,RT,DT, or RF)
      ["unknown 3",66,16,"h","","",""], ; ............. 66-81 ???
      )
@@ -66,7 +66,7 @@
     (= "mi" val) " (miles)"
     (= "kf" val) " (kilo-ft)"
     :else
-    (str " (unknown unit" val ")")
+    (str val " (unknown unit)")
     )
   )
 
@@ -225,4 +225,102 @@
        )
       ) ; let (initial)
     ); let (post-processing)
+  )
+
+;; ==============================================================
+(defn- convert-date-time
+  [val]
+  ;; need to fix
+  886668374
+  )
+
+(defn- convert-num
+  [inval scale]
+  ;; coerce into float then into int ....
+  ;; is there a better way?
+  (let [val (read-string (str inval))
+        ascale (if (not= scale "") scale 1.0)
+        wl  (read-string (format "%.0f" (+ 0.0 (/ val ascale))))
+        ]
+    wl
+    ); let
+  )
+
+(defn- real-alter-block
+  [bname fmtno old-map new-map input output]
+
+  (println "* Proceesing/altering " bname)
+  (let [startpos (.getFilePointer (output :fh))]
+    (if (= fmtno 2) ; write header
+      (write-string output bname)
+      )
+    
+    (loop [
+           flist (fields fmtno)
+           ]
+      (if (empty? flist) nil
+          
+          ;; ..... not empty; need to do all this....
+          (let [fspec (first flist)
+                field (get fspec 0)
+                fsize (get fspec 2)
+                ftype (get fspec 3)
+                scale (get fspec 4)
+                ;; 
+                oldval (get-in old-map [bname field])
+                tmpval (get-in new-map [bname field])
+                newval (if (nil? tmpval) oldval tmpval)
+                ]
+            (println "\t- processing: " field "; original:" oldval "; replacement:" newval)
+            (cond
+              ;; use replacement values
+              (= "date/time" field) (write-uint output (convert-date-time newval) fsize)
+              (= "trace type" field) (write-fixed-string output (.substring newval 0 2))
+              ;; use old values
+              (= "unit" field) (write-fixed-string output (.substring oldval 0 2))
+              (= "wavelength" field) (write-uint output (convert-num oldval scale) fsize)
+              (= "pulse width" field) (write-uint output (convert-num oldval scale) fsize)
+              (= "index" field) (write-uint output (convert-num oldval scale) fsize)
+              (= "num averages" field) (write-uint output (convert-num oldval scale) fsize)
+              (= "BC" field) (write-uint output (convert-num oldval scale) fsize)
+              :else (do
+                      (println "\t  ! skipping")
+                      (cond
+                        (= ftype "h") (write-hexstring output oldval)
+                        (= ftype "s") (write-fixed-string output oldval)
+                        (= ftype "v") (write-uint output (convert-num oldval scale) fsize)
+                        :else nil
+                        ) ; cond inner
+                      ); do
+              
+              ) ; cond outer
+            (recur (rest flist))
+            ); let
+
+          
+          ); if
+      ) ;loop
+    
+    ;; (println "\tDEBUG: " bname " block: loop finished")
+    (let [
+          currpos  (.getFilePointer (output :fh))
+          newbsize (- currpos startpos)
+          mbsize   (get-in old-map ["mapblock" "nbytes"])
+          ]
+      ;; (println "Old block size " (get-in old-map ["blocks" bname "size"]))
+      ;; (println "New block size " newbsize)
+      
+      (cljotdr.mapblock/adjust-block-size bname newbsize mbsize output)
+      
+      (.seek (output :fh) currpos) ;; restore file position for next round
+      ); let (adjust-block-size)
+    
+    ); let (startpos)
+  )
+
+(defn alter-block
+  [bname fmtno old-map new-map input output]
+  (if (not= bname "FxdParams") (println "! wrong block " bname)
+      (real-alter-block bname fmtno old-map new-map input output)
+      )
   )
