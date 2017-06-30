@@ -4,6 +4,7 @@
             [cljotdr.parse :refer :all]
             [cljotdr.dump :refer [save-file]]
             [cljotdr.mapblock]
+            [cljotdr.alter]
             )
   (:gen-class))
 

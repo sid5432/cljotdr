@@ -44,6 +44,13 @@
 ;; ========================================================
 (def slimit 1024)
 
+(defn- check-nbytes [xnn]
+  (cond
+    (contains? #{2 4 8} xnn) xnn
+    :else (int 2)
+    )
+  )
+
 (defn get-string
   "read in a string (stop when reaching '0')"
   [raf]
@@ -96,16 +103,8 @@
 (defn get-uint
   "read unsigned int, 2, 4, or 8 bytes; little endian"
   [raf & args]
-  (defn- nbytes []
-    (let [nn (first args)]
-      (cond
-        (contains? #{2 4 8} nn) nn
-        :else (int 2)
-        )
-      )
-    )
   (let [
-        nn (nbytes)
+        nn (check-nbytes (first args))
         plist (map (fn [_] (myread raf)) (range nn))
         ]
     (reduce (fn [prev x] (+ x (bit-shift-left prev 8))) 0 (reverse plist))
@@ -116,16 +115,8 @@
 (defn get-signed
   "read signed int, 2, 4, or 8 bytes; little endian"
   [raf & args]
-  (defn- nbytes []
-    (let [nn (first args)]
-      (cond
-        (contains? #{2 4 8} nn) nn
-        :else (int 2)
-        )
-      )
-    )
   (let [
-        nn (nbytes)
+        nn (check-nbytes (first args))
         buffer (byte-buffer nn)
         ]
     (nio.core/set-byte-order! buffer :little-endian)
@@ -146,16 +137,8 @@
 (defn get-signed-alt
   "read signed int, 2, 4, or 8 bytes; little endian"
   [raf & args]
-  (defn- nbytes []
-    (let [nn (first args)]
-      (cond
-        (contains? #{2 4 8} nn) nn
-        :else (int 2)
-        )
-      )
-    )
   (let [
-        nn (nbytes)
+        nn (check-nbytes (first args))
         plist (map (fn [_] (myread raf)) (range nn))
         xx (nio.core/byte-buffer (byte-array plist))
         ]
@@ -168,3 +151,87 @@
        ) 0)
     )
   )
+
+;; ========================================================
+(defn write-fixed-string
+  "write string without trailing \0"
+  [raf text]
+  ;; (println (map (fn [x] (int x)) (.getBytes text)))
+  (doall
+   (map (fn [x] (.write (raf :fh) (int x))) (.getBytes text))
+   )
+  )
+
+(defn write-string
+  "write string with trailing \0"
+  [raf text]
+  (write-fixed-string raf text)
+  (.write (raf :fh) 0)
+  )
+
+(defn write-hexstring
+  [raf hexstring]
+  ;(println
+  ; (map (fn [[x y _]] (str x y)) (partition 3 hexstring)) )
+  
+  (doall
+   (map (fn [[x y _]] (.write (raf :fh)
+                              (Integer/parseInt (str x y) 16))) (partition 3 hexstring))
+   )
+  )
+
+(defn to-little-endian
+  "create a little-endian byte representation of val as an nn element list"
+  [val nn]
+  (loop [
+         i     nn
+         plist ()
+         xx    val
+         ]
+    (if (= i 0) (reverse plist)
+        (do
+          (recur
+           (dec i)
+           (conj plist (bit-and xx 0xff))
+           (bit-shift-right xx 8)
+           ); recur
+          ); do
+        ); if
+    ); loop
+  )
+
+(defn write-uint
+  "write val as nn byte unsigned int"
+  [raf val xnn]
+  (let [
+        nn     (check-nbytes xnn)
+        ]
+    (doall
+     (map (fn [x] (.write (raf :fh) x)) (to-little-endian val nn))
+     ); doall
+    ); let
+  )
+
+(defn write-signed
+  "write val as nn byte unsigned int"
+  [raf val xnn]
+  (let [
+        nn     (check-nbytes xnn)
+        buffer (byte-buffer nn)
+        ]
+    (nio.core/set-byte-order! buffer :little-endian)
+    (.position buffer 0)
+    (cond
+      (= nn 2) (put-short buffer val)
+      (= nn 4) (put-int   buffer val)
+      (= nn 8) (put-long  buffer val)
+      )
+    (.position buffer 0)
+    (doall
+     (map (fn [_] (.write (raf :fh) (take-byte buffer)))  (range nn))
+     ); doall
+    
+    ); let
+  )
+
+

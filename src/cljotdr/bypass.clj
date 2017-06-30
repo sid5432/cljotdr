@@ -47,3 +47,21 @@
         )
     ); end let
   )
+
+;; ==========================================================================
+(defn copy-block
+  [bname results-map input output]
+  (let [
+        pos   (get-in results-map ["blocks" bname "pos"])
+        bsize (get-in results-map ["blocks" bname "size"])
+        ]
+    ;; (println "- writing " bsize " bytes for " bname " at pos " pos)
+    (println "! Not processing/altering the " bname " block; copying " bsize "bytes")
+    (.seek (input :fh) pos)
+    ;; we'll assume output is at the end-of-file position to append
+    (doall
+     (map (fn [x] (.write (output :fh) (.read (input :fh))))
+          (range bsize))
+     );do all
+    ); let
+  )

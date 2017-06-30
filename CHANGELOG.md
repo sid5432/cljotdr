@@ -4,6 +4,12 @@
 ### Changed
 	- Nothing planned yet.
 
+## [0.1.2] - 2017-06-30
+### Added
+	- Add various functions to modify/rewrite an SOR file, based on a modified JSON file
+	- Add test cases for new functions
+	- Move test/samples files from resources to test directory
+
 ## [0.1.1] - 2017-06-27
 ### Added
 	- Changelog
@@ -17,4 +23,4 @@
 	- Initial release.
 
 [Unreleased]: https://github.com/your-name/cljotdr/compare/0.1.1...HEAD
-[0.1.0]: https://github.com/sid5432/cljotdr/compare/0.1.0...0.1.1
+[0.1.1]: https://github.com/sid5432/cljotdr/compare/0.1.0...0.1.2

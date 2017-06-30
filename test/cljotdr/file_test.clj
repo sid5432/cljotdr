@@ -14,7 +14,7 @@
           debug?    false ; quiet
           fname     "test/data/demo_ab.sor"
           expected  "test/data/demo_ab-expected.json"
-          opfile    "/tmp/demo_ab.json"
+          ;; opfile    (java.io.File/createTempFile "demo_ab" ".json") ; "/tmp/demo_ab.json"
           results-map  (cljotdr.parse/sorparse fname tracefile debug?)
           ]
       (with-open [in (clojure.java.io/input-stream expected)]
@@ -67,7 +67,7 @@
           debug?    false ; quiet
           fname     "test/data/sample1310_lowDR.sor"
           expected  "test/data/sample1310_lowDR-expected.json"
-          opfile    "/tmp/sample1310_lowDR.json"
+          ;; opfile    (java.io.File/createTempFile "sample1310_lowDR" ".json"); "/tmp/sample1310_lowDR.json"
           results-map  (cljotdr.parse/sorparse fname tracefile debug?)
           ]
       (with-open [in (clojure.java.io/input-stream expected)]
