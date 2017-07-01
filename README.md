@@ -10,8 +10,8 @@ reflectometer](http://https://en.wikipedia.org/wiki/Optical_time-domain_reflecto
 2](http://telecom-info.telcordia.com/site-cgi/ido/docs.cgi?ID=SEARCH&DOCUMENT=SR-4731&)
 standard.  While it is a standard, it is unfortunately not open, in
 that the specifics of the data format are not openly available.  You
-can buy the standards document from Telcordia for $750 US (as of this
-writing), but this was beyond my budget. (And likely comes with
+can buy the standards document from Telcordia for $750 US (last I checked), 
+but this was beyond my budget. (And likely comes with
 all sorts of licensing restrictions. I wouldn't know; I have never
 seen the document!)
 
@@ -51,16 +51,16 @@ rules that I have deduced from the sample files.  **use it at your own
 risk! You have been warned!**
 
 The program was ported over from my original [pubOTDR](https://github.com/sid5432/pubOTDR)
-written in Perl (there is also a Python version, [pyOTDR](https://github.com/sid5432/pyOTDR)
+written in Perl (there is also a Python version, [pyOTDR](https://github.com/sid5432/pyOTDR)).
 
 (Why Clojure?  Well, I needed a project to practice/learn the language, and
 this seems as good as any.  Since Clojure is a hosted language, under the Java Virtual Machine (JVM),
-you should be able to use the code from Java also)
+you can use the code from Java also)
 
 
 ## Installation
 
-Add <code>[optical.fiber/cljotdr "0.1.1"]</code> to your <code>project.clj</code> file.
+Add <code>[optical.fiber/cljotdr "0.1.2"]</code> to your <code>project.clj</code> file.
 
 Uses several other modules:
 
