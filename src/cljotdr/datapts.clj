@@ -111,7 +111,7 @@
   (if (get results "debug")
     (do
       (println "    : num data points =" (get-in results ["DataPts" "num data points"]))
-      (println "    : unknown =" (get-in results ["DataPts" "unknown"]))
+      (println "    : number of traces =" (get-in results ["DataPts" "num traces"]))
       (println "    : num data points again =" (get-in results ["DataPts" "num data points 2"]))
       (println "    : scaling factor =" (get-in results ["DataPts" "scaling factor"]))
       (println "    : before applying offset: "
@@ -151,17 +151,23 @@
         tracefile (get results "dump")
         model     (get-in results ["SupParams" "OTDR"])
         numpts    (get-uint raf 4)
-        unknown   (get-uint raf 2)
+        numtraces (get-signed raf 2)
         numpts2   (get-uint raf 4)
         scale     (* (get-uint raf 2) 0.001)
         ]
     (sanity-check numpts numpts2 results)
+    (if (> numtraces 1)
+      (do
+        (println "!!!Cannot handle more than one trace; aborting")
+        (System/exit 0)
+        )
+      )
     (->
      results
      (assoc-in ["DataPts" "_datapts_params" "xscaling"] (xscale model))
      (assoc-in ["DataPts" "_datapts_params" "offset type"] offset-type)
      (assoc-in ["DataPts" "num data points"] numpts)
-     (assoc-in ["DataPts" "unknown"] unknown)
+     (assoc-in ["DataPts" "num traces"] numtraces)
      (assoc-in ["DataPts" "num data points 2"] numpts2)
      (assoc-in ["DataPts" "scaling factor"] scale)
      (loop-datapoints raf numpts scale tracefile)

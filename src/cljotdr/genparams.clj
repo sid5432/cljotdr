@@ -18,7 +18,7 @@
      "location B",  ;; ........... 4
      "cable code/fiber type", ;... 5
      "build condition", ;; ....... 6: fixed 2 bytes char/string
-     "(unknown 1)", ;; ........... 7: fixed 4 bytes
+     "user offset", ;; ........... 7: fixed 4 bytes (Andrew Jones)
      "operator",    ;; ........... 8
      "comments",    ;; ........... 9
      )
@@ -34,9 +34,10 @@
      "location B", ;; ............ 5
      "cable code/fiber type", ;... 6
      "build condition", ;; ....... 7: fixed 2 bytes char/string
-     "(unknown 2)", ;; ........... 8: fixed 8 bytes
-     "operator",    ;; ........... 9
-     "comments",    ;; .......... 10
+     "user offset", ;; ........... 8: fixed 4 bytes int (Andrew Jones)
+     "user offset distance", ;; ...9: fixed 4 bytes int (Andrew Jones)
+     "operator",    ;; ...........10
+     "comments",    ;; .......... 11
      )
     )
   )
@@ -81,8 +82,8 @@
                                  )
     (= "fiber type" field) (fiber-type (get-uint raf 2))
     (= "wavelength" field) (format "%d nm" (get-uint raf 2))
-    (= "(unknown 1)" field) (format "VALUE %d" (get-uint raf 4))
-    (= "(unknown 2)" field) (str "VALUE " (str (get-uint raf 8)))
+    (= "user offset" field) (format "%d" (get-signed raf 4))
+    (= "user offset distance" field) (format "%d" (get-signed raf 4))
     :else
     (get-string raf)
     ) ; end cond
@@ -188,10 +189,10 @@
                                                  (read-string newval)   2)
               (= "build condition" field) (write-fixed-string output
                                                               (.substring newval 0 2) )
-              (= "(unknown 1)" field) (write-uint output
-                                                  (read-string (.substring newval 5)) 4)
-              (= "(unknown 2)" field) (write-uint output
-                                                  (read-string (.substring newval 5)) 8)
+              (= "user offset" field) (write-signed output
+                                                  (read-string newval)  4)
+              (= "user offset distance" field) (write-signed output
+                                                  (read-string newval)  4)
               ;; version 2 fields
               (= "fiber type" field) (write-uint output
                                                  (map-fiber-type newval)   2)

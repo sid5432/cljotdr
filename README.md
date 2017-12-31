@@ -1,4 +1,3 @@
-
 # cljotdr: a simple OTDR SOR file parse written in Clojure
 
 [![Clojars Project](https://img.shields.io/clojars/v/optical.fiber/cljotdr.svg)](https://clojars.org/optical.fiber/cljotdr)
@@ -52,10 +51,11 @@ risk! You have been warned!**
 
 The program was ported over from my original [pubOTDR](https://github.com/sid5432/pubOTDR)
 written in Perl (there is also a Python version, [pyOTDR](https://github.com/sid5432/pyOTDR)
+and a Ruby version, [rbOTDR](https://github.com/sid5432/rbOTDR)).
 
-(Why Clojure?  Well, I needed a project to practice/learn the language, and
+(<i>Why Clojure?  Well, I needed a project to practice/learn the language, and
 this seems as good as any.  Since Clojure is a hosted language, under the Java Virtual Machine (JVM),
-you should be able to use the code from Java also)
+you should be able to use the code from Java also.</i>)
 
 
 ## Installation
@@ -74,7 +74,27 @@ Uses several other modules:
 * [digest "1.4.5"] (various digests; only for testing)
 
 ## Usage
+
+In the top level directory, the command "lein run" to see the options.  To parse a file, run
+the command like this:
+
 <pre>
+% lein run --file myfile.sor --dump yes
+</pre>
+
+This should produce two files: <code>myfile.json</code> and <code>myfile-dump.dat</code>.
+The first file is a JSON dump of the parse results.  The second file is the OTDR trace
+(tab delimited x and y values).
+
+To run the program interactively, start up "lein repl" and run
+
+<pre>
+   % lein repl
+   nREPL server started on port 32927 on host 127.0.0.1 - nrepl://127.0.0.1:32927
+   REPL-y 0.3.7, nREPL 0.2.12
+   
+   ...(<i>omitted</i>)....
+   
    user=> (use '[cljotdr.core])
    nil
    user=> (def file-name "mydata.sor")
@@ -88,6 +108,12 @@ Uses several other modules:
    user=> (def output-type 1)
    #'user/output-type (<i>1 for JSON, 2 for SMILE</i>)
    user=> (cljotdr.dump/save-file results "output.json" output-type) 
+</pre>
+
+To run the unit tests, run this at the top level directory:
+
+<pre>
+   % lein test
 </pre>
 
 ## Using in Java
@@ -146,7 +172,11 @@ This should generate two jar files in the folder <code>target/uberjar/</code>: <
 
 ### Bugs
     
-The parsing is incomplete, and might even be wrong! Please read the introduction above.
+The parsing is "complete", to the extent that all parameters have been identified (thanks
+to the help of several readers of my blog).  However the current program does not handle more than
+one trace (even though the standard allows this).  If there is more than one trace, the program
+will simply abort!
+
 
 ## License
 
@@ -155,4 +185,4 @@ Copyright © 2017 Sidney Li <sidney.hy.li@gmail.com>
 Distributed under the Eclipse Public License either version 1.0 or (at
 your option) any later version.
 
-<i>(Last Revised 2017-06-28)</i>
+<i>(Last Revised 2017-12-31)</i>
