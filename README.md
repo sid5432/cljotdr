@@ -59,7 +59,7 @@ you should be able to use the code from Java also.</i>)
 
 ## Installation
 
-Add <code>[optical.fiber/cljotdr "0.1.2"]</code> to your <code>project.clj</code> file.
+Add <code>[optical.fiber/cljotdr "0.1.3"]</code> to your <code>project.clj</code> file.
 
 Uses several other modules:
 
