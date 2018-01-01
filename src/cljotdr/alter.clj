@@ -10,7 +10,7 @@
             [cljotdr.cksum]
             )
   (:gen-class
-   :name cljotdr.gensor
+   :name cljotdr.alter
    :methods [^:static [change_sor [String String String] void] ]
    ))
 
@@ -126,7 +126,7 @@
   )
 
 (defn -change_sor
-  "Java wrapper for gensor"
+  "Java wrapper for change-sor"
   [sor-file json-file new-sor-file]
   (change-sor sor-file json-file new-sor-file)
   )

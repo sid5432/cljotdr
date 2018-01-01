@@ -1,8 +1,10 @@
 (ns cljotdr.fxdparams
   (:require
    [cljotdr.utils :refer :all]
+   [clj-time.core :as cc]
    [clj-time.coerce :as ct]
    [clj-time.format :as f]
+   [cljotdr.mapblock]
    )
   (:gen-class))
 
@@ -10,76 +12,76 @@
   [fmtno]
   (cond
     (= 1 fmtno)
-    (list ; name, start-pos, length (bytes), type, multiplier, precision, units
+    (list ; name, start-pos, length (bytes), type, multiplier/scale, precision, units, replace-or-not(when altered)
      ; type: display type: 'v' (value) or 'h' (hexidecimal) or 's' (string)
-     ["date/time",0,4,"v","","",""], ; ............... 0-3 seconds in Unix time
-     ["unit",4,2,"s","","",""], ; .................... 4-5 distance units, 2 char (km,mt,..)
-     ["wavelength",6,2,"v",0.1,1,"nm"], ; ............ 6-7 wavelength (nm)
+     ["date/time",0,4,"v","","","", true], ; ................ 0-3 seconds in Unix time
+     ["unit",4,2,"s","","","", false], ; .................... 4-5 distance units, 2 char (km,mt,..)
+     ["wavelength",6,2,"v",0.1,1,"nm", false], ; ............ 6-7 wavelength (nm)
      
      ;; from Andrew Jones
-     ["acquisition offset",8,4,"i","","",""], ; .......8-11 acqusition offset; units?
-     ["number of pulse width entries",12,2,"v","","",""], ; 12-13 number of pulse width entries
+     ["acquisition offset",8,4,"i","","","", false], ; .............8-11 acqusition offset; units?
+     ["number of pulse width entries",12,2,"v","","","", false], ; 12-13 number of pulse width entries
      
-     ["pulse width",14,2,"v","",0,"ns"],  ; .......... 14-15 pulse width (ns)
-     ["sample spacing", 16,4,"v",1e-8,"","usec"], ; .. 16-19 sample spacing (in usec)
-     ["num data points", 20,4,"v","","",""], ; ....... 20-23 number of data points
-     ["index", 24,4,"v",1e-5,6,""], ; ................ 24-27 index of refraction
-     ["BC", 28,2,"v",-0.1,2,"dB"], ; ................. 28-29 backscattering coeff
-     ["num averages", 30,4,"v","","",""], ; .......... 30-33 number of averages
-     ["range", 34,4,"v",2e-5,6,"km"], ; .............. 34-37 range (km)
+     ["pulse width",14,2,"v","",0,"ns", false],  ; .......... 14-15 pulse width (ns)
+     ["sample spacing", 16,4,"v",1e-8,"","usec", false], ; .. 16-19 sample spacing (in usec)
+     ["num data points", 20,4,"v","","","", false], ; ....... 20-23 number of data points
+     ["index", 24,4,"v",1e-5,6,"", false], ; ................ 24-27 index of refraction
+     ["BC", 28,2,"v",-0.1,2,"dB", false], ; ................. 28-29 backscattering coeff
+     ["num averages", 30,4,"v","","","", false], ; .......... 30-33 number of averages
+     ["range", 34,4,"v",2e-5,6,"km", false], ; .............. 34-37 range (km)
 
      ;; from Andrew Jones
-     ["front panel offset",38,4,"i","","",""], ;...... 38-41
-     ["noise floor level",42,2,"v","","",""], ; ...... 42-43 unsigned
-     ["noise floor scaling factor",44,2,"i","","",""], ; 44-45
-     ["power offset first point",46,2,"v","","",""], ; . 46-47 unsigned
+     ["front panel offset",38,4,"i","","","", false], ;........ 38-41
+     ["noise floor level",42,2,"v","","","", false], ; ........ 42-43 unsigned
+     ["noise floor scaling factor",44,2,"i","","","", false], ; 44-45
+     ["power offset first point",46,2,"v","","","", false], ;.. 46-47 unsigned
      
-     ["loss thr", 48,2,"v",0.001,3,"dB"], ; .......... 48-49 loss threshold
-     ["refl thr", 50,2,"v",-0.001,3,"dB"], ; ......... 50-51 reflection threshold
-     ["EOT thr",52,2,"v",0.001,3,"dB"], ; ............ 52-53 end-of-transmission threshold
+     ["loss thr", 48,2,"v",0.001,3,"dB", false], ; .......... 48-49 loss threshold
+     ["refl thr", 50,2,"v",-0.001,3,"dB", false], ; ......... 50-51 reflection threshold
+     ["EOT thr",52,2,"v",0.001,3,"dB", false], ; ............ 52-53 end-of-transmission threshold
      )
     (= 2 fmtno)
     (list ; name, start-pos, length (bytes), type, multiplier, precision, units
      ; type: display type: "v" (value) or "h" (hexidecimal) or "s" (string)
-     ["date/time",0,4,"v","","",""], ; ............... 0-3 seconds in Unix time
-     ["unit",4,2,"s","","",""], ; .................... 4-5 distance units, 2 char (km,mt,...)
-     ["wavelength",6,2,"v",0.1,1,"nm"], ; ............ 6-7 wavelength (nm)
+     ["date/time",0,4,"v","","","", true], ; ................ 0-3 seconds in Unix time
+     ["unit",4,2,"s","","","", false], ; .................... 4-5 distance units, 2 char (km,mt,...)
+     ["wavelength",6,2,"v",0.1,1,"nm", false], ; ............ 6-7 wavelength (nm)
 
      ;; from Andrew Jones
-     ["acquisition offset",8,4,"i","","",""], ; .............. 8-11 acquisition offset; units?
-     ["acquisition offset distance",12,4,"i","","",""], ;.... 12-15 acquisition offset distance; units?
-     ["number of pulse width entries",16,2,"v","","",""], ;.. 16-17 number of pulse width entries
+     ["acquisition offset",8,4,"i","","","", false], ; .............. 8-11 acquisition offset; units?
+     ["acquisition offset distance",12,4,"i","","","", false], ;.... 12-15 acquisition offset distance; units?
+     ["number of pulse width entries",16,2,"v","","","", false], ;.. 16-17 number of pulse width entries
      
-     ["pulse width",18,2,"v","",0,"ns"],  ; .......... 18-19 pulse width (ns)
-     ["sample spacing", 20,4,"v",1e-8,"","usec"], ; .. 20-23 sample spacing (usec)
-     ["num data points", 24,4,"v","","",""], ; ....... 24-27 number of data points
-     ["index", 28,4,"v",1e-5,6,""], ; ................ 28-31 index of refraction
-     ["BC", 32,2,"v",-0.1,2,"dB"], ; ................. 32-33 backscattering coeff
+     ["pulse width",18,2,"v","",0,"ns", false],  ; .......... 18-19 pulse width (ns)
+     ["sample spacing", 20,4,"v",1e-8,"","usec", false], ; .. 20-23 sample spacing (usec)
+     ["num data points", 24,4,"v","","","", false], ; ....... 24-27 number of data points
+     ["index", 28,4,"v",1e-5,6,"", false], ; ................ 28-31 index of refraction
+     ["BC", 32,2,"v",-0.1,2,"dB", false], ; ................. 32-33 backscattering coeff
      
-     ["num averages", 34,4,"v","","",""], ; .......... 34-37 number of averages
+     ["num averages", 34,4,"v","","","", false], ; .......... 34-37 number of averages
      
      ; from Dmitry Vaygant:
-     ["averaging time", 38,2,"v",0.1,0,"sec"], ; ..... 38-39 averaging time in seconds
+     ["averaging time", 38,2,"v",0.1,0,"sec", false], ; ..... 38-39 averaging time in seconds
      
-     ["range", 40,4,"v",2e-5,6,"km"], ; .............. 40-43 range (km); note x2
+     ["range", 40,4,"v",2e-5,6,"km", false], ; .............. 40-43 range (km); note x2
 
      ;; from Andrew Jones
-     ["acquisition range distance",44,4,"i","","",""], ; ... 44-47
-     ["front panel offset",48,4,"i","","",""], ; ........... 48-51
-     ["noise floor level",52,2,"v","","",""], ; ............ 52-53 unsigned
-     ["noise floor scaling factor",54,2,"i","","",""], ; ... 54-55
-     ["power offset first point",56,2,"v","","",""], ; ..... 56-57 unsigned
+     ["acquisition range distance",44,4,"i","","","", false], ; ... 44-47
+     ["front panel offset",48,4,"i","","","", false], ; ........... 48-51
+     ["noise floor level",52,2,"v","","","", false], ; ............ 52-53 unsigned
+     ["noise floor scaling factor",54,2,"i","","","", false], ; ... 54-55
+     ["power offset first point",56,2,"v","","","", false], ; ..... 56-57 unsigned
      
-     ["loss thr", 58,2,"v",0.001,3,"dB"], ; .......... 58-59 loss threshold
-     ["refl thr", 60,2,"v",-0.001,3,"dB"], ; ......... 60-61 reflection threshold
-     ["EOT thr",62,2,"v",0.001,3,"dB"], ; ............ 62-63 end-of-transmission threshold
-     ["trace type",64,2,"s","","",""], ; ............. 64-65 trace type (ST,RT,DT, or RF)
+     ["loss thr", 58,2,"v",0.001,3,"dB", false], ; .......... 58-59 loss threshold
+     ["refl thr", 60,2,"v",-0.001,3,"dB", false], ; ......... 60-61 reflection threshold
+     ["EOT thr",62,2,"v",0.001,3,"dB", false], ; ............ 62-63 end-of-transmission threshold
+     ["trace type",64,2,"s","","","", true], ; .............. 64-65 trace type (ST,RT,DT, or RF)
 
      ;; from Andrew Jones
-     ["X1",66,4,"i","","",""], ; ............. 66-69
-     ["Y1",70,4,"i","","",""], ; ............. 70-73
-     ["X2",74,4,"i","","",""], ; ............. 74-77
-     ["Y2",78,4,"i","","",""], ; ............. 78-81
+     ["X1",66,4,"i","","","", false], ; ............. 66-69
+     ["Y1",70,4,"i","","","", false], ; ............. 70-73
+     ["X2",74,4,"i","","","", false], ; ............. 74-77
+     ["Y2",78,4,"i","","","", false], ; ............. 78-81
      )
     )
   )
@@ -138,6 +140,19 @@
     ) ; cond
   )
 
+(defn unix-time-to-string
+  [val]
+  ;; NOTE: return time will be UTC!
+  ;; (clj-time.coerce/to-string (clj-time.core/from-time-zone (clj-time.core/now) (clj-time.core/time-zone-for-offset 4)))
+
+  ;; alterative:
+  ;; (ct/to-string    (cc/fromt-time-zone    (ct/from-long (* 1000 val))   (cc/time-zone-for-offset 4))    )
+  
+  (str (f/unparse (f/formatters :rfc822)
+                  (ct/from-long (* 1000 val))
+                  ))
+  )
+
 (defn read-field
   [raf fmtno field fspec]
   (let [
@@ -154,10 +169,7 @@
                                                               (System/exit 0)
                                                               )
                                                             val)
-                (= "date/time" field) (str (f/unparse (f/formatters :rfc822)
-                                                      (ct/from-long (* 1000 val))
-                                                      )
-                                           " (" val " sec)")
+                (= "date/time" field) (str (unix-time-to-string val) " (" val " sec)")
                 (= "unit" field) (str val (unit-map val))
                 (= "trace type" field) (tracetype val)
                 :else val
@@ -264,10 +276,26 @@
   )
 
 ;; ==============================================================
-(defn- convert-date-time
+(defn convert-date-time
+  "convert to unix time; accepted formats:
+  example 1: Thu, 05 Feb 1998 08:46:14 +0000
+  example 2: 2017-06-30T09:07:16
+  example 3: 2017-06-30 09:07:16
+  example 4: 2013-04-16T15:52:00.000-00:00
+  "
   [val]
-  ;; need to fix
-  886668374
+  (let [
+        newval (ct/to-long val)
+        unrec? (nil? newval)
+        useval (if unrec? (ct/to-long (clj-time.core/now)) newval)
+        ]
+    (if unrec?
+      (println "!!! Warning: unrecognized time format " val "; using now as time stamp")
+      )
+    
+    (read-string (format "%.0f" (* 0.001 useval)))
+    
+    ); let
   )
 
 (defn- convert-num
@@ -295,41 +323,46 @@
            flist (fields fmtno)
            ]
       (if (empty? flist) nil
-          
           ;; ..... not empty; need to do all this....
-          (let [fspec (first flist)
-                field (get fspec 0)
-                fsize (get fspec 2)
-                ftype (get fspec 3)
-                scale (get fspec 4)
+          (let [fspec    (first flist)
+                field    (get fspec 0)
+                fsize    (get fspec 2)
+                ftype    (get fspec 3)
+                scale    (get fspec 4)
+                replace? (get fspec 7)
                 ;; 
-                oldval (get-in old-map [bname field])
-                tmpval (get-in new-map [bname field])
-                newval (if (nil? tmpval) oldval tmpval)
+                oldval   (get-in old-map [bname field])
+                newval   (get-in new-map [bname field])
+                ;;
+                nonew?   (nil? newval)
+                same?    (= newval oldval)
+                useval   (if (or nonew? same?) oldval newval)
                 ]
-            (println "\t- processing: " field "; original:" oldval "; replacement:" newval)
+            (println "\t- processing: " field)
+            (if (or nonew? same?)
+              (println "\t\tnot changed or not provided")
+              (println "\t\treplace '" oldval "' with '" newval "'")
+              )
+            
             (cond
-              ;; use replacement values
-              (= "date/time" field) (write-uint output (convert-date-time newval) fsize)
-              (= "trace type" field) (write-fixed-string output (.substring newval 0 2))
-              ;; use old values
-              (= "unit" field) (write-fixed-string output (.substring oldval 0 2))
-              (= "wavelength" field) (write-uint output (convert-num oldval scale) fsize)
-              (= "pulse width" field) (write-uint output (convert-num oldval scale) fsize)
-              (= "index" field) (write-uint output (convert-num oldval scale) fsize)
-              (= "num averages" field) (write-uint output (convert-num oldval scale) fsize)
-              (= "BC" field) (write-uint output (convert-num oldval scale) fsize)
+              (= "date/time" field) (write-uint output (convert-date-time useval) fsize)
+              (= "trace type" field) (write-fixed-string output (.substring useval 0 2))
+              (= "unit" field) (write-fixed-string output (.substring useval 0 2))
+              ;; (= "wavelength" field) (write-uint output (convert-num useval scale) fsize)
+              ;; (= "pulse width" field) (write-uint output (convert-num useval scale) fsize)
+              ;; (= "index" field) (write-uint output (convert-num useval scale) fsize)
+              ;; (= "num averages" field) (write-uint output (convert-num useval scale) fsize)
+              ;; (= "BC" field) (write-uint output (convert-num useval scale) fsize)
               :else (do
-                      (println "\t  ! skipping")
                       (cond
-                        (= ftype "h") (write-hexstring output oldval)
-                        (= ftype "s") (write-fixed-string output oldval)
-                        (= ftype "v") (write-uint output (convert-num oldval scale) fsize)
+                        (= ftype "h") (write-hexstring output useval)
+                        (= ftype "s") (write-fixed-string output useval)
+                        (= ftype "v") (write-uint output (convert-num useval scale) fsize)
+                        (= ftype "i") (write-signed output (convert-num useval scale) fsize)
                         :else nil
                         ) ; cond inner
                       ); do
-              
-              ) ; cond outer
+              ) ;cond outer
             (recur (rest flist))
             ); let
 
